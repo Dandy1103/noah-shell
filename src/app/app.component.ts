@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import {
   NoahHeaderAction,
@@ -11,6 +11,7 @@ import type { NavCatalog, NavGroup } from '@dandy1103/ui';
 import { Subscription, filter } from 'rxjs';
 import { SHELL_APPS, appByRepo, appFromPath } from './core/app-manifest';
 import { CatalogStore } from './core/catalog.store';
+import { ShellSessionStore } from './core/shell-session.store';
 
 @Component({
   selector: 'noah-root',
@@ -22,11 +23,13 @@ import { CatalogStore } from './core/catalog.store';
 export class AppComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly catalogStore = inject(CatalogStore);
+  private readonly sessionStore = inject(ShellSessionStore);
   private readonly subscription = new Subscription();
   private readonly pathname = signal(location.pathname);
 
   readonly activeApp = computed(() => appFromPath(this.pathname()));
   readonly catalog = this.catalogStore.catalog;
+  readonly userName = this.sessionStore.userName;
   readonly navGroups = computed(() => buildNavbar(this.catalog()));
   readonly sidebar = computed(() => {
     const app = this.activeApp();
@@ -44,6 +47,15 @@ export class AppComponent implements OnDestroy {
   ];
 
   constructor() {
+    effect((onCleanup) => {
+      const route = this.activeApp().route;
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = `/remotes/${route}/styles.css`;
+      stylesheet.dataset['noahRemoteStyles'] = route;
+      document.head.append(stylesheet);
+      onCleanup(() => stylesheet.remove());
+    });
     this.subscription.add(
       this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
         .subscribe((event) => this.pathname.set(new URL(event.urlAfterRedirects, location.origin).pathname)),

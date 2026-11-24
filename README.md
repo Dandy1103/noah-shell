@@ -33,23 +33,16 @@ Shell 不負責：
 - 業務 API 或業務授權規則。
 - 各 App 的內部狀態。
 
-## App 掛載契約
+## App 路由契約
 
-App 轉成可掛載模組後，向 `ShellAppRegistry` 註冊 loader。模組只需實作 `mount`，並回傳 `unmount`：
-
-```ts
-registry.register('noah-hrm', () => import('./apps/hrm.entry'));
-```
+Shell 是唯一擁有瀏覽器網址的 Router。每個業務 App 是 Native Federation remote，只暴露一個很小的 interface：
 
 ```ts
-export async function mount(host: HTMLElement, context: ShellAppContext) {
-  // 在 host 內啟動 App。
-  return {
-    unmount() {
-      // 釋放 App 的 Angular instance、事件及資源。
-    },
-  };
-}
+export const remoteRoutes: Routes = [
+  // App 自己的領域路由。
+];
 ```
 
-目前尚未註冊既有 App，因此掛載區會顯示遷移提示。這讓 Shell 可以先獨立建置，再逐一遷移 App，不需要一次修改全部專案。
+Shell 根據第一段網址載入對應 remote。例如 `/hrm/employees` 由 Shell 選擇 `noah-hrm`，再把 `employees` 交給 HRM 的 `remoteRoutes`。業務 App 不再啟動第二個 Router，也不再渲染 Header、Navbar 或 Sidebar。
+
+部署時，Shell 位於網站根目錄，remote 位於 `/remotes/<route>/`。開發時可以分別啟動 Shell 與各 remote，Shell 的 proxy 會使用相同公開路徑。

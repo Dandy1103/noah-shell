@@ -1,0 +1,69 @@
+name: Publish platform artifact
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: '@dandy1103'
+
+      - name: Resolve artifact name
+        id: meta
+        shell: bash
+        run: |
+          app="${GITHUB_REPOSITORY#*/}"
+          echo "app=$app" >> "$GITHUB_OUTPUT"
+          echo "route=${app#noah-}" >> "$GITHUB_OUTPUT"
+          echo "tag=platform-${GITHUB_REF_NAME}-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Shell
+        run: npm run build -- --base-href=/
+
+      - name: Package immutable artifact
+        shell: bash
+        run: |
+          app="${{ steps.meta.outputs.app }}"
+          mkdir -p release
+          tar -C "dist/$app/browser" -czf "release/$app.tar.gz" .
+          cd release
+          sha256sum "$app.tar.gz" > "$app.tar.gz.sha256"
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.meta.outputs.tag }}"
+          app="${{ steps.meta.outputs.app }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "release/$app.tar.gz" "release/$app.tar.gz.sha256" --clobber
+          else
+            extra=()
+            if [ "$GITHUB_REF_NAME" = "develop" ]; then extra+=(--prerelease); fi
+            gh release create "$tag" \
+              "release/$app.tar.gz" "release/$app.tar.gz.sha256" \
+              --target "$GITHUB_SHA" \
+              --title "$app platform artifact ${GITHUB_SHA::7}" \
+              --notes "Built from $GITHUB_REPOSITORY@$GITHUB_SHA for Noah Platform." \
+              --latest=false "${extra[@]}"
+          fi

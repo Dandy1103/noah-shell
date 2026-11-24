@@ -1,0 +1,18 @@
+{
+  "noah-portal": "/remotes/portal/remoteEntry.json",
+  "noah-hrm": "/remotes/hrm/remoteEntry.json",
+  "noah-notice": "/remotes/notice/remoteEntry.json",
+  "noah-notify": "/remotes/notify/remoteEntry.json",
+  "noah-docs": "/remotes/docs/remoteEntry.json",
+  "noah-calendar": "/remotes/calendar/remoteEntry.json",
+  "noah-account": "/remotes/account/remoteEntry.json",
+  "noah-apps": "/remotes/apps/remoteEntry.json",
+  "noah-crm": "/remotes/crm/remoteEntry.json",
+  "noah-erp": "/remotes/erp/remoteEntry.json",
+  "noah-itsm": "/remotes/itsm/remoteEntry.json",
+  "noah-lms": "/remotes/lms/remoteEntry.json",
+  "noah-approval": "/remotes/approval/remoteEntry.json",
+  "noah-affairs": "/remotes/affairs/remoteEntry.json",
+  "noah-payroll": "/remotes/payroll/remoteEntry.json",
+  "noah-project": "/remotes/project/remoteEntry.json"
+}

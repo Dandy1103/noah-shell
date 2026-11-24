@@ -20,11 +20,16 @@
 .shell__content {
   flex: 1 1 auto;
   min-width: 0;
+  padding: 28px 32px 48px;
   background: var(--color-surface);
 }
 
 @media (max-width: 720px) {
   .shell__body {
     flex-direction: column;
+  }
+
+  .shell__content {
+    padding: 20px 16px 40px;
   }
 }
