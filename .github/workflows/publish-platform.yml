@@ -68,7 +68,7 @@ jobs:
       - name: Publish GitHub release
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.NOAH_PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${{ steps.meta.outputs.tag }}"
           app="${{ steps.meta.outputs.app }}"
