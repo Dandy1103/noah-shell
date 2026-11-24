@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NOAH_PACKAGES_TOKEN }}
 
       - name: Build Shell
         env:
@@ -68,7 +68,7 @@ jobs:
       - name: Publish GitHub release
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.NOAH_PACKAGES_TOKEN }}
         run: |
           tag="${{ steps.meta.outputs.tag }}"
           app="${{ steps.meta.outputs.app }}"
