@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import {
   NoahHeaderAction,
   NoahHeaderComponent,
+  NoahLoadingMaskComponent,
   NoahNavbarComponent,
   NoahSidebarComponent,
   NoahSidebarSection,
@@ -12,11 +13,12 @@ import { Subscription, filter } from 'rxjs';
 import { SHELL_APPS, appByRepo, appFromPath } from './core/app-manifest';
 import { CatalogStore } from './core/catalog.store';
 import { ShellSessionStore } from './core/shell-session.store';
+import { signedIn } from './require-session';
 
 @Component({
   selector: 'noah-root',
   standalone: true,
-  imports: [RouterOutlet, NoahHeaderComponent, NoahNavbarComponent, NoahSidebarComponent],
+  imports: [RouterOutlet, NoahLoadingMaskComponent, NoahHeaderComponent, NoahNavbarComponent, NoahSidebarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -26,6 +28,8 @@ export class AppComponent implements OnDestroy {
   private readonly sessionStore = inject(ShellSessionStore);
   private readonly subscription = new Subscription();
   private readonly pathname = signal(location.pathname);
+  private readonly returnPath = signal(location.pathname + location.search);
+  readonly ready = signal(false);
 
   readonly activeApp = computed(() => appFromPath(this.pathname()));
   readonly catalog = this.catalogStore.catalog;
@@ -39,14 +43,18 @@ export class AppComponent implements OnDestroy {
     const app = this.activeApp();
     return this.catalog()?.systems.find((system) => system.repo === app.repo)?.name?.trim() || app.label;
   });
-  readonly headerActions: readonly NoahHeaderAction[] = [
-    { label: '個人資料', href: '/portal/profile' },
-    { label: '我的權限', href: '/portal/permissions' },
-    { label: '變更密碼', href: '/auth/change-password' },
-    { label: '登出', href: '/auth/logout', method: 'post' },
-  ];
+  readonly headerActions = computed((): NoahHeaderAction[] => {
+    const query = new URLSearchParams({ next: this.returnPath() }).toString();
+    return [
+      { label: '個人資料', href: '/portal/profile' },
+      { label: '我的權限', href: '/portal/permissions' },
+      { label: '變更密碼', href: `/auth/change-password?${query}` },
+      { label: '登出', href: `/auth/logout?${query}`, method: 'post' },
+    ];
+  });
 
   constructor() {
+    void this.open();
     effect((onCleanup) => {
       const route = this.activeApp().route;
       const stylesheet = document.createElement('link');
@@ -58,8 +66,17 @@ export class AppComponent implements OnDestroy {
     });
     this.subscription.add(
       this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-        .subscribe((event) => this.pathname.set(new URL(event.urlAfterRedirects, location.origin).pathname)),
+        .subscribe((event) => {
+          const url = new URL(event.urlAfterRedirects, location.origin);
+          this.pathname.set(url.pathname);
+          this.returnPath.set(url.pathname + url.search);
+        }),
     );
+  }
+
+  private async open(): Promise<void> {
+    if (!await signedIn()) return;
+    this.ready.set(true);
     void this.catalogStore.refresh();
   }
 

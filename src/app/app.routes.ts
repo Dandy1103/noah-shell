@@ -1,5 +1,6 @@
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { Routes } from '@angular/router';
+import { requireSession } from './require-session';
 import { RemoteErrorComponent } from './shell/remote-error.component';
 
 export const routes: Routes = [
@@ -30,6 +31,7 @@ interface RemoteRouteModule {
 function remote(path: string, name: string): Routes[number] {
   return {
     path,
+    canActivate: [requireSession],
     loadChildren: () => loadRemoteModule<RemoteRouteModule>(name, './routes')
       .then((module) => module.remoteRoutes)
       .catch((): Routes => [{ path: '**', component: RemoteErrorComponent, data: { app: name } }]),

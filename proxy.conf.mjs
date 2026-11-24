@@ -1,34 +1,74 @@
-export default [
-  remote('/remotes/portal', 4300),
-  remote('/remotes/hrm', 4301),
-  remote('/remotes/notice', 4302),
-  remote('/remotes/notify', 4303),
-  remote('/remotes/docs', 4304),
-  remote('/remotes/calendar', 4305),
-  remote('/remotes/account', 4306),
-  remote('/remotes/apps', 4307),
-  remote('/remotes/crm', 4308),
-  remote('/remotes/erp', 4309),
-  remote('/remotes/itsm', 4310),
-  remote('/remotes/lms', 4311),
-  remote('/remotes/approval', 4312),
-  remote('/remotes/affairs', 4313),
-  remote('/remotes/payroll', 4314),
-  remote('/remotes/project', 4315),
-  {
-    context: ['/api', '/auth', '/oauth2', '/login'],
-    target: process.env['CORE_URL'] || 'http://127.0.0.1:8080',
-    secure: false,
-    changeOrigin: false,
-  },
-];
+const platform = 'https://noah-platform.dandy-cheng.com';
+const platformHost = 'noah-platform.dandy-cheng.com';
 
-function remote(context, port) {
+function markDevHost(proxyReq, req) {
+  proxyReq.removeHeader('x-forwarded-port');
+  const host = req.headers.host;
+  if (!host) return;
+  proxyReq.setHeader('X-Forwarded-Host', host);
+  proxyReq.setHeader('X-Forwarded-Proto', 'http');
+  proxyReq.setHeader('X-Noah-Dev-Host', host);
+  proxyReq.setHeader('X-Noah-Dev-Proto', 'http');
+}
+
+function stayHere(proxyRes) {
+  const location = proxyRes.headers.location;
+  if (!location) return;
+  proxyRes.headers.location = Array.isArray(location) ? location.map(localPath) : localPath(location);
+}
+
+function localPath(location) {
+  if (!location || location.startsWith('/')) return location;
+  try {
+    const next = new URL(location);
+    const loopback = next.hostname === 'localhost' || next.hostname === '127.0.0.1' || next.hostname === '[::1]';
+    if (next.hostname !== platformHost && !loopback) return location;
+    return `${next.pathname}${next.search}${next.hash}`;
+  } catch {
+    return location;
+  }
+}
+
+function devPlatform() {
   return {
-    context: [context],
-    target: `http://127.0.0.1:${port}`,
+    target: platform,
+    secure: true,
+    changeOrigin: true,
+    configure(proxy) {
+      proxy.on('proxyReq', markDevHost);
+      proxy.on('proxyRes', stayHere);
+    },
+  };
+}
+
+export default {
+  '/remotes/portal': remote(4300),
+  '/remotes/hrm': remote(4301),
+  '/remotes/notice': remote(4302),
+  '/remotes/notify': remote(4303),
+  '/remotes/docs': remote(4304),
+  '/remotes/calendar': remote(4305),
+  '/remotes/account': remote(4306),
+  '/remotes/apps': remote(4307),
+  '/remotes/crm': remote(4308),
+  '/remotes/erp': remote(4309),
+  '/remotes/itsm': remote(4310),
+  '/remotes/lms': remote(4311),
+  '/remotes/approval': remote(4312),
+  '/remotes/affairs': remote(4313),
+  '/remotes/payroll': remote(4314),
+  '/remotes/project': remote(4315),
+  '/api': devPlatform(),
+  '/auth': devPlatform(),
+  '/oauth2': devPlatform(),
+  '/login': devPlatform(),
+};
+
+function remote(port) {
+  return {
+    target: `http://localhost:${port}`,
     secure: false,
     changeOrigin: false,
-    pathRewrite: { [`^${context}`]: '' },
+    rewrite: (path) => path.replace(/^\/remotes\/[^/]+/, ''),
   };
 }

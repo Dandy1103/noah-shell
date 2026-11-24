@@ -1,5 +1,6 @@
+@if (ready()) {
 <div class="shell">
-  <noah-header homeHref="/portal" [userName]="userName()" [actions]="headerActions" />
+  <noah-header homeHref="/portal" [userName]="userName()" [actions]="headerActions()" />
   <noah-navbar [groups]="navGroups()" [currentLabel]="currentLabel()" />
 
   <div class="shell__body">
@@ -11,3 +12,6 @@
     </main>
   </div>
 </div>
+} @else {
+  <noah-loading-mask />
+}
