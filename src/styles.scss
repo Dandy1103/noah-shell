@@ -1,0 +1,28 @@
+@use '@dandy1103/ui/styles/reset';
+
+:root {
+  --color-primary: #285fb8;
+  --color-info: #2563eb;
+  --color-text-primary: #172033;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-surface: #f6f8fb;
+  --color-surface-selected: #edf2f8;
+  --radius-sm: 4px;
+  --shadow-md: 0 10px 24px rgb(15 23 42 / 12%);
+  --header-height: 60px;
+  font-family: Inter, "Noto Sans TC", system-ui, sans-serif;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+}
+
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100dvh;
+}

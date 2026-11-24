@@ -1,0 +1,13 @@
+<div class="shell">
+  <noah-header homeHref="/portal" [actions]="headerActions" />
+  <noah-navbar [groups]="navGroups()" [currentLabel]="currentLabel()" />
+
+  <div class="shell__body">
+    @if (sidebar().length) {
+      <noah-sidebar [sections]="sidebar()" />
+    }
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
