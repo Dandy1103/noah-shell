@@ -28,7 +28,10 @@ export class AppComponent implements OnDestroy {
   readonly activeApp = computed(() => appFromPath(this.pathname()));
   readonly catalog = this.catalogStore.catalog;
   readonly navGroups = computed(() => buildNavbar(this.catalog()));
-  readonly sidebar = computed(() => buildSidebar(this.catalog(), this.activeApp().repo));
+  readonly sidebar = computed(() => {
+    const app = this.activeApp();
+    return app.layout === 'sidebar' ? buildSidebar(this.catalog(), app.repo) : [];
+  });
   readonly currentLabel = computed(() => {
     const app = this.activeApp();
     return this.catalog()?.systems.find((system) => system.repo === app.repo)?.name?.trim() || app.label;

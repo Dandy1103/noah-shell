@@ -24,6 +24,7 @@ Shell 負責：
 - 全域 Header、Navbar、Sidebar。
 - Catalog 的持久快取與背景重新驗證。
 - 跨 App 導航及目前 App 狀態。
+- 根據 App manifest 套用全寬或 Sidebar 版型；Portal 使用全寬，其餘業務 App 使用 Sidebar。
 - 載入、掛載及卸載業務 App。
 
 Shell 不負責：

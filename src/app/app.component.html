@@ -3,7 +3,7 @@
   <noah-navbar [groups]="navGroups()" [currentLabel]="currentLabel()" />
 
   <div class="shell__body">
-    @if (sidebar().length) {
+    @if (activeApp().layout === 'sidebar') {
       <noah-sidebar [sections]="sidebar()" />
     }
     <main class="shell__content">

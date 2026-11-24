@@ -19,4 +19,9 @@ describe('app manifest', () => {
     expect(appByRepo('noah-approval')?.route).toBe('approval');
     expect(appByRepo('missing')).toBeUndefined();
   });
+
+  it('declares the layout instead of inferring it from catalog data', () => {
+    expect(appByRepo('noah-portal')?.layout).toBe('full');
+    expect(SHELL_APPS.filter((app) => app.repo !== 'noah-portal').every((app) => app.layout === 'sidebar')).toBeTrue();
+  });
 });
