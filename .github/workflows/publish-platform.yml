@@ -37,7 +37,24 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Shell
-        run: npm run build -- --base-href=/
+        env:
+          BASE_HREF: /
+        shell: bash
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const href = process.env.BASE_HREF;
+          const config = JSON.parse(readFileSync('angular.json', 'utf8'));
+          for (const project of Object.values(config.projects ?? {})) {
+            for (const target of Object.values(project.architect ?? {})) {
+              if (target?.builder === '@angular-devkit/build-angular:application' && target.options) {
+                target.options.baseHref = href;
+              }
+            }
+          }
+          writeFileSync('angular.json', `${JSON.stringify(config, null, 2)}\n`);
+          EOF
+          npm run build
 
       - name: Package immutable artifact
         shell: bash
