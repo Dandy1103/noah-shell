@@ -4,11 +4,24 @@ const platformHost = 'noah-platform.dandy-cheng.com';
 function markDevHost(proxyReq, req) {
   proxyReq.removeHeader('x-forwarded-port');
   const host = req.headers.host;
-  if (!host) return;
-  proxyReq.setHeader('X-Forwarded-Host', host);
-  proxyReq.setHeader('X-Forwarded-Proto', 'http');
-  proxyReq.setHeader('X-Noah-Dev-Host', host);
-  proxyReq.setHeader('X-Noah-Dev-Proto', 'http');
+  if (host) {
+    proxyReq.setHeader('X-Forwarded-Host', host);
+    proxyReq.setHeader('X-Forwarded-Proto', 'http');
+    proxyReq.setHeader('X-Noah-Dev-Host', host);
+    proxyReq.setHeader('X-Noah-Dev-Proto', 'http');
+  }
+  if (localOrigin(req.headers.origin)) proxyReq.setHeader('Origin', platform);
+  if (localOrigin(req.headers.referer)) proxyReq.setHeader('Referer', `${platform}/`);
+}
+
+function localOrigin(value) {
+  if (!value) return false;
+  try {
+    const name = new URL(value).hostname;
+    return name === 'localhost' || name === '127.0.0.1' || name === '[::1]';
+  } catch {
+    return false;
+  }
 }
 
 function stayHere(proxyRes) {
