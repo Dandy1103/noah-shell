@@ -5,10 +5,6 @@ export class ShellSessionStore {
   private readonly name = signal('');
   readonly userName = this.name.asReadonly();
 
-  constructor() {
-    void this.refresh();
-  }
-
   async refresh(): Promise<void> {
     const employee = await displayName('/api/me/employee');
     this.name.set(employee || await displayName('/api/session'));

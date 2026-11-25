@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import {
   NoahHeaderAction,
@@ -9,16 +9,18 @@ import {
   NoahSidebarSection,
 } from '@dandy1103/ui';
 import type { NavCatalog, NavGroup } from '@dandy1103/ui';
+import { OperationLoadingService } from '@dandy1103/common';
 import { Subscription, filter } from 'rxjs';
 import { SHELL_APPS, appByRepo, appFromPath } from './core/app-manifest';
 import { CatalogStore } from './core/catalog.store';
 import { ShellSessionStore } from './core/shell-session.store';
 import { signedIn } from './require-session';
+import { ToastComponent } from './toast/toast.component';
 
 @Component({
   selector: 'noah-root',
   standalone: true,
-  imports: [RouterOutlet, NoahLoadingMaskComponent, NoahHeaderComponent, NoahNavbarComponent, NoahSidebarComponent],
+  imports: [RouterOutlet, NoahLoadingMaskComponent, NoahHeaderComponent, NoahNavbarComponent, NoahSidebarComponent, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -27,6 +29,9 @@ export class AppComponent implements OnDestroy {
   private readonly catalogStore = inject(CatalogStore);
   private readonly sessionStore = inject(ShellSessionStore);
   private readonly subscription = new Subscription();
+  private readonly operationLoading = inject(OperationLoadingService);
+  private readonly abortController = new AbortController();
+  readonly loading = this.operationLoading.create(this.abortController.signal);
   private readonly pathname = signal(location.pathname);
   private readonly returnPath = signal(location.pathname + location.search);
   readonly ready = signal(false);
@@ -54,6 +59,7 @@ export class AppComponent implements OnDestroy {
   });
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.abortController.abort());
     void this.open();
     effect((onCleanup) => {
       const route = this.activeApp().route;
@@ -75,9 +81,14 @@ export class AppComponent implements OnDestroy {
   }
 
   private async open(): Promise<void> {
-    if (!await signedIn()) return;
-    this.ready.set(true);
-    void this.catalogStore.refresh();
+    const hasCatalog = this.catalogStore.hasCatalog();
+    await this.loading.run(async () => {
+      if (!await signedIn()) return;
+      await this.sessionStore.refresh();
+      if (!hasCatalog) await this.catalogStore.refresh();
+      this.ready.set(true);
+    });
+    if (this.ready() && hasCatalog) void this.catalogStore.refresh();
   }
 
   ngOnDestroy(): void {

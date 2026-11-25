@@ -12,6 +12,9 @@
     </main>
   </div>
 </div>
-} @else {
-  <noah-loading-mask />
 }
+@if (loading.phase() !== 'hidden') {
+  <noah-loading-mask class="operation-loading" [class.operation-loading--leaving]="loading.phase() === 'leaving'"
+    [style.--operation-loading-fade-duration]="loading.fadeDuration" label="處理中..." />
+}
+<app-toast />
