@@ -75,6 +75,7 @@ jobs:
           app="${{ steps.meta.outputs.app }}"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "release/$app.tar.gz" "release/$app.tar.gz.sha256" --clobber
+            gh release edit "$tag" --draft=false
           else
             extra=()
             if [ "$GITHUB_REF_NAME" = "develop" ]; then extra+=(--prerelease); fi
@@ -85,3 +86,16 @@ jobs:
               --notes "Built from $GITHUB_REPOSITORY@$GITHUB_SHA for Noah Platform." \
               --latest=false "${extra[@]}"
           fi
+
+      - name: Notify develop platform to update channel
+        if: github.ref_name == 'develop'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.PLATFORM_DISPATCH_TOKEN }}
+        run: |
+          gh api repos/Dandy1103/noah-platform/dispatches \
+            --method POST \
+            -f event_type=platform-artifact-published \
+            -F 'client_payload[channel]=develop' \
+            -F "client_payload[source_repository]=$GITHUB_REPOSITORY" \
+            -F "client_payload[sha]=$GITHUB_SHA"
