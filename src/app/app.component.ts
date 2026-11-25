@@ -1,14 +1,12 @@
 import { Component, DestroyRef, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import {
-  NoahHeaderAction,
-  NoahHeaderComponent,
-  NoahLoadingMaskComponent,
-  NoahNavbarComponent,
-  NoahSidebarComponent,
-  NoahSidebarSection,
-} from '@dandy1103/ui';
-import type { NavCatalog, NavGroup } from '@dandy1103/ui';
+import { NoahLoadingMaskComponent } from '@dandy1103/ui';
+import { NoahHeaderComponent } from './layout/header/header.component';
+import type { NoahHeaderAction } from './layout/header/header.component';
+import { NoahNavbarComponent } from './layout/navbar/navbar.component';
+import type { NavCatalog, NavGroup } from './layout/navbar/nav-catalog';
+import { NoahSidebarComponent } from './layout/sidebar/sidebar.component';
+import type { NoahSidebarSection } from './layout/sidebar/sidebar.component';
 import { OperationLoadingService } from '@dandy1103/common';
 import { Subscription, filter } from 'rxjs';
 import { SHELL_APPS, appByRepo, appFromPath } from './core/app-manifest';
