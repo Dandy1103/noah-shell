@@ -55,6 +55,7 @@
 }
 
 .noah-header__product {
+  display: none;
   padding-left: 16px;
   border-left: 1px solid rgb(0 20 48 / 16%);
   font-size: 16px;
@@ -195,8 +196,48 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 440px) {
+@media (max-width: 720px) {
+  :host {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 40;
+    width: 100%;
+  }
+
+  .noah-header {
+    height: 56px;
+    gap: 8px;
+    padding: 0 64px 0 12px;
+  }
+
+  .noah-header__home {
+    height: 56px;
+    gap: 8px;
+  }
+
+  .noah-header__logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .noah-header__brand {
+    font-size: 18px;
+  }
+
   .noah-header__product {
+    display: block;
+    min-width: 0;
+    max-width: calc(100vw - 190px);
+    overflow: hidden;
+    padding-left: 10px;
+    border-left: 1px solid rgb(0 20 48 / 16%);
+    font-size: 14px;
+    text-overflow: ellipsis;
+  }
+
+  .noah-header__actions {
     display: none;
   }
 }

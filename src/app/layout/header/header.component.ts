@@ -15,6 +15,7 @@ export interface NoahHeaderAction {
 export class NoahHeaderComponent {
   @Input() userName = '';
   @Input() homeHref = '/';
+  @Input() productLabel = '';
   @Input() actions: readonly NoahHeaderAction[] = [];
   @Output() submitted = new EventEmitter<SubmitEvent>();
 

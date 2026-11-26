@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@dandy1103/ui": [
+        "../noah-ui/projects/ui/src/public-api.ts"
+      ]
+    }
+  }
+}

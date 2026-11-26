@@ -11,6 +11,10 @@
   grid-template-rows: auto auto 1fr;
 }
 
+.shell--sidebar {
+  --mobile-bottom-bar: calc(68px + env(safe-area-inset-bottom));
+}
+
 .shell__body {
   display: flex;
   min-width: 0;
@@ -25,11 +29,19 @@
 }
 
 @media (max-width: 720px) {
+  .shell {
+    grid-template-rows: 56px 0 1fr;
+  }
+
   .shell__body {
     flex-direction: column;
   }
 
   .shell__content {
     padding: 20px 16px 40px;
+  }
+
+  .shell--sidebar .shell__content {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
   }
 }

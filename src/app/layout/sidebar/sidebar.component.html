@@ -1,12 +1,47 @@
-<nav aria-label="側邊導覽">
-  @for (section of sections; track $index) {
-    <div>
-      <p>{{ section.title }}</p>
-      @for (link of section.links; track $index) {
-        <a [routerLink]="link.path" routerLinkActive="is-active"
-           [routerLinkActiveOptions]="{ exact: link.exact === true || link.path === '/' }"
-           ariaCurrentWhenActive="page">{{ link.label }}</a>
+<nav aria-label="應用程式功能">
+  <div class="mobile-sidebar">
+    @if (mobileOpen()) {
+      <button class="mobile-sidebar__backdrop" type="button" aria-label="關閉功能選單" (click)="closeMobile()"></button>
+      @if (visibleSection; as section) {
+        <section class="mobile-sidebar__sheet" [attr.aria-label]="section.title + '功能'">
+          <div class="mobile-sidebar__sheet-header">
+            <h2>{{ section.title }}</h2>
+            <button type="button" aria-label="關閉功能選單" (click)="closeMobile()">×</button>
+          </div>
+          <div class="mobile-sidebar__sheet-links">
+            @for (link of section.links; track $index) {
+              <a [routerLink]="link.path" routerLinkActive="is-active"
+                 [routerLinkActiveOptions]="{ exact: link.exact === true || link.path === '/' }"
+                 ariaCurrentWhenActive="page" (click)="closeMobile()">{{ link.label }}</a>
+            }
+          </div>
+        </section>
+      }
+    }
+    <div class="mobile-sidebar__bar" role="group" aria-label="功能分類">
+      @for (section of sections; track $index) {
+        <button type="button" [class.is-active]="selectedSection() === $index"
+                [attr.aria-current]="currentPageLabel($index) ? 'page' : null"
+                [attr.aria-expanded]="mobileOpen() && selectedSection() === $index"
+                (click)="toggleSection($index)">
+          <span>{{ section.title }}</span>
+          @if (currentPageLabel($index); as page) {
+            <small>{{ page }}</small>
+          }
+        </button>
       }
     </div>
-  }
+  </div>
+  <div class="desktop-menu">
+    @for (section of sections; track $index) {
+      <section>
+        <p>{{ section.title }}</p>
+        @for (link of section.links; track $index) {
+          <a [routerLink]="link.path" routerLinkActive="is-active"
+             [routerLinkActiveOptions]="{ exact: link.exact === true || link.path === '/' }"
+             ariaCurrentWhenActive="page">{{ link.label }}</a>
+        }
+      </section>
+    }
+  </div>
 </nav>

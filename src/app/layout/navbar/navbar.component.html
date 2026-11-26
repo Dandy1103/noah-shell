@@ -1,86 +1,144 @@
 <nav #bar class="portal-nav" aria-label="功能" [class.is-overflow]="visibleCount() < groups.length" (mouseenter)="cancelHide()" (mouseleave)="scheduleHide()">
-    <div #measure class="portal-nav__measure" aria-hidden="true">
-        @for (group of groups; track group.label) {
-            <button type="button" class="portal-nav__probe" data-item>{{ group.label }}</button>
-        }
-        <button type="button" class="portal-nav__probe" data-more>…</button>
-    </div>
-    @for (group of groups; track group.label; let index = $index) {
-        @if (index < visibleCount()) {
-            <div class="portal-nav__item"
-                [class.portal-nav__item--end]="index >= groups.length / 2"
-                [class.portal-nav__item--current]="group.label === currentLabel"
-                (mouseenter)="openFromBar(group.label)"
-                (focusin)="openFromBar(group.label)"
-                (focusout)="close($event)">
-                <button type="button"
-                    [attr.aria-expanded]="opened() === group.label"
-                    [attr.aria-current]="group.label === currentLabel ? 'page' : null"
-                    (keydown.escape)="hide()">
-                    {{ group.label }}
-                </button>
-                @if (opened() === group.label) {
-                    <div class="portal-nav__panel">
-                        @for (section of group.sections; track section.title) {
-                            <section>
-                                <h2>{{ section.title }}</h2>
-                                <ul>
-                                    @for (link of section.links; track link.label) {
-                                        <li>
+    <button class="mobile-trigger" type="button" aria-controls="mobile-system-menu"
+            [attr.aria-label]="mobileOpen() ? '關閉系統與帳號選單' : '開啟系統與帳號選單'"
+            [attr.aria-expanded]="mobileOpen()" (click)="toggleMobile()">
+        <span class="mobile-trigger__icon" aria-hidden="true"></span>
+    </button>
+    @if (mobileOpen()) {
+        <button class="mobile-backdrop" type="button" aria-label="關閉系統與帳號選單" (click)="closeMobile()"></button>
+        <div class="mobile-menu" id="mobile-system-menu">
+            <section class="mobile-menu__account" aria-label="使用者帳號">
+                <strong>{{ userName || '使用者' }}</strong>
+                <div class="mobile-menu__account-actions">
+                    @for (action of accountActions; track $index) {
+                        @if (action.method === 'post') {
+                            <form [action]="action.href" method="post">
+                                <button type="submit">{{ action.label }}</button>
+                            </form>
+                        } @else {
+                            <a [href]="action.href" (click)="closeMobile()">{{ action.label }}</a>
+                        }
+                    }
+                </div>
+            </section>
+            <section class="mobile-menu__systems" aria-label="系統導覽">
+                <h2>系統</h2>
+                @for (group of groups; track group.label; let index = $index) {
+                    <div class="mobile-menu__group">
+                        <button type="button" class="mobile-menu__group-button"
+                                [attr.aria-expanded]="mobileGroupOpen() === group.label"
+                                [attr.aria-controls]="'mobile-system-' + index"
+                                [attr.aria-current]="group.label === currentLabel ? 'page' : null"
+                                [class.mobile-menu__group-button--current]="group.label === currentLabel"
+                                (click)="toggleMobileGroup(group.label)">
+                            {{ group.label }}
+                            <span aria-hidden="true">{{ mobileGroupOpen() === group.label ? '−' : '+' }}</span>
+                        </button>
+                        @if (mobileGroupOpen() === group.label) {
+                            <div class="mobile-menu__links" [id]="'mobile-system-' + index">
+                                @for (section of group.sections; track section.title) {
+                                    <section>
+                                        <h3>{{ section.title }}</h3>
+                                        @for (link of section.links; track link.label) {
                                             @if (link.href; as href) {
-                                                <a [href]="href">{{ link.label }}</a>
+                                                <a [href]="href" (click)="closeMobile()">{{ link.label }}</a>
                                             } @else {
                                                 <span>{{ link.label }}</span>
                                             }
-                                        </li>
-                                    }
-                                </ul>
-                            </section>
+                                        }
+                                    </section>
+                                }
+                            </div>
                         }
                     </div>
                 }
-            </div>
-        }
+            </section>
+        </div>
     }
-    @if (visibleCount() < groups.length) {
-        <div #more class="portal-nav__item portal-nav__more" [class.portal-nav__item--current]="overflowCurrent()" (mouseenter)="hide()">
-            <button type="button" aria-label="更多" aria-haspopup="menu" [attr.aria-expanded]="moreOpen()" (click)="toggleMore()">…</button>
-            @if (moreOpen()) {
-                <div class="portal-nav__more-menu" role="menu">
-                    @for (group of groups.slice(visibleCount()); track group.label) {
-                        <div class="portal-nav__more-item" (mouseenter)="open(group.label)" (focusin)="open(group.label)">
-                            <button type="button"
-                                [attr.aria-expanded]="opened() === group.label"
-                                [attr.aria-current]="group.label === currentLabel ? 'page' : null">
-                                {{ group.label }}
-                            </button>
-                            @if (opened() === group.label) {
-                                <div class="portal-nav__panel">
-                                    @for (section of group.sections; track section.title) {
-                                        <section>
-                                            <h2>{{ section.title }}</h2>
-                                            <ul>
-                                                @for (link of section.links; track link.label) {
-                                                    <li>
-                                                        @if (link.href; as href) {
-                                                            <a [href]="href">{{ link.label }}</a>
-                                                        } @else {
-                                                            <span>{{ link.label }}</span>
-                                                        }
-                                                    </li>
+    <div class="desktop-nav">
+        <div #measure class="portal-nav__measure" aria-hidden="true">
+            @for (group of groups; track group.label) {
+                <button type="button" class="portal-nav__probe" data-item>{{ group.label }}</button>
+            }
+            <button type="button" class="portal-nav__probe" data-more>…</button>
+        </div>
+        @for (group of groups; track group.label; let index = $index) {
+            @if (index < visibleCount()) {
+                <div class="portal-nav__item"
+                    [class.portal-nav__item--end]="index >= groups.length / 2"
+                    [class.portal-nav__item--current]="group.label === currentLabel"
+                    (mouseenter)="openFromBar(group.label)"
+                    (focusin)="openFromBar(group.label)"
+                    (focusout)="close($event)">
+                    <button type="button"
+                        [attr.aria-expanded]="opened() === group.label"
+                        [attr.aria-current]="group.label === currentLabel ? 'page' : null"
+                        (keydown.escape)="hide()">
+                        {{ group.label }}
+                    </button>
+                    @if (opened() === group.label) {
+                        <div class="portal-nav__panel">
+                            @for (section of group.sections; track section.title) {
+                                <section>
+                                    <h2>{{ section.title }}</h2>
+                                    <ul>
+                                        @for (link of section.links; track link.label) {
+                                            <li>
+                                                @if (link.href; as href) {
+                                                    <a [href]="href">{{ link.label }}</a>
+                                                } @else {
+                                                    <span>{{ link.label }}</span>
                                                 }
-                                            </ul>
-                                        </section>
-                                    }
-                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </section>
                             }
                         </div>
                     }
                 </div>
             }
-        </div>
-    }
-    @if (opened() || moreOpen()) {
-        <div class="portal-nav__mask" (mouseenter)="hide()"></div>
-    }
+        }
+        @if (visibleCount() < groups.length) {
+            <div #more class="portal-nav__item portal-nav__more" [class.portal-nav__item--current]="overflowCurrent()" (mouseenter)="hide()">
+                <button type="button" aria-label="更多" aria-haspopup="menu" [attr.aria-expanded]="moreOpen()" (click)="toggleMore()">…</button>
+                @if (moreOpen()) {
+                    <div class="portal-nav__more-menu" role="menu">
+                        @for (group of groups.slice(visibleCount()); track group.label) {
+                            <div class="portal-nav__more-item" (mouseenter)="open(group.label)" (focusin)="open(group.label)">
+                                <button type="button"
+                                    [attr.aria-expanded]="opened() === group.label"
+                                    [attr.aria-current]="group.label === currentLabel ? 'page' : null">
+                                    {{ group.label }}
+                                </button>
+                                @if (opened() === group.label) {
+                                    <div class="portal-nav__panel">
+                                        @for (section of group.sections; track section.title) {
+                                            <section>
+                                                <h2>{{ section.title }}</h2>
+                                                <ul>
+                                                    @for (link of section.links; track link.label) {
+                                                        <li>
+                                                            @if (link.href; as href) {
+                                                                <a [href]="href">{{ link.label }}</a>
+                                                            } @else {
+                                                                <span>{{ link.label }}</span>
+                                                            }
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </section>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        @if (opened() || moreOpen()) {
+            <div class="portal-nav__mask" (mouseenter)="hide()"></div>
+        }
+    </div>
 </nav>

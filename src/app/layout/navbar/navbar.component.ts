@@ -18,9 +18,13 @@ export class NoahNavbarComponent implements AfterViewInit {
   get groups(): readonly NavGroup[] { return this.items; }
 
   @Input() currentLabel = '';
+  @Input() userName = '';
+  @Input() accountActions: readonly { label: string; href: string; method?: 'post' }[] = [];
 
   readonly opened = signal<string | null>(null);
   readonly moreOpen = signal(false);
+  readonly mobileOpen = signal(false);
+  readonly mobileGroupOpen = signal<string | null>(null);
   readonly visibleCount = signal(20);
   private items: readonly NavGroup[] = [];
   private observer?: ResizeObserver;
@@ -29,7 +33,6 @@ export class NoahNavbarComponent implements AfterViewInit {
 
   @ViewChild('bar') private bar?: ElementRef<HTMLElement>;
   @ViewChild('measure') private measureRow?: ElementRef<HTMLElement>;
-  @ViewChild('more') private more?: ElementRef<HTMLElement>;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -71,22 +74,45 @@ export class NoahNavbarComponent implements AfterViewInit {
     this.opened.set(null);
   }
 
+  toggleMobile(): void {
+    if (this.mobileOpen()) {
+      this.closeMobile();
+      return;
+    }
+    this.mobileOpen.set(true);
+    this.moreOpen.set(false);
+    this.opened.set(null);
+    this.mobileGroupOpen.set(this.groups.some((group) => group.label === this.currentLabel)
+      ? this.currentLabel
+      : null);
+  }
+
+  toggleMobileGroup(label: string): void {
+    this.mobileGroupOpen.update((open) => open === label ? null : label);
+  }
+
+  closeMobile(): void {
+    this.mobileOpen.set(false);
+  }
+
   overflowCurrent(): boolean {
     return this.groups.slice(this.visibleCount()).some((group) => group.label === this.currentLabel);
   }
 
   @HostListener('document:click', ['$event'])
   closeMoreFromOutside(event: MouseEvent): void {
-    if (!this.moreOpen()) return;
-    const root = this.more?.nativeElement;
+    if (!this.moreOpen() && !this.mobileOpen()) return;
+    const root = this.bar?.nativeElement;
     const target = event.target;
     if (root && target instanceof Node && root.contains(target)) return;
+    this.closeMobile();
     this.moreOpen.set(false);
     this.opened.set(null);
   }
 
   @HostListener('document:keydown.escape')
   closeMoreFromKeyboard(): void {
+    this.closeMobile();
     this.moreOpen.set(false);
     this.hide();
   }

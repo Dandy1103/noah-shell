@@ -1,7 +1,7 @@
 @if (ready()) {
-<div class="shell">
-  <noah-header homeHref="/portal" [userName]="userName()" [actions]="headerActions()" />
-  <noah-navbar [groups]="navGroups()" [currentLabel]="currentLabel()" />
+<div class="shell" [class.shell--sidebar]="activeApp().layout === 'sidebar'">
+  <noah-header homeHref="/portal" [productLabel]="currentLabel()" [userName]="userName()" [actions]="headerActions()" />
+  <noah-navbar [groups]="navGroups()" [currentLabel]="currentLabel()" [userName]="userName()" [accountActions]="headerActions()" />
 
   <div class="shell__body">
     @if (activeApp().layout === 'sidebar') {
@@ -13,5 +13,7 @@
   </div>
 </div>
 }
-<noah-loading-mask [phase]="loading.phase()" [fadeDuration]="loading.fadeDuration" label="處理中..." />
+@if (remoteLoading() || loading.phase() !== 'hidden') {
+  <noah-loading-mask [phase]="remoteLoading() ? 'visible' : loading.phase()" [fadeDuration]="loading.fadeDuration" label="處理中..." />
+}
 <app-toast />

@@ -39,6 +39,14 @@
 						"rebuildDelay": 0,
 						"dev": true,
 						"port": 0
+					},
+					"configurations": {
+						"ui-local": {
+							"target": "noah-shell:serve-original:ui-local",
+							"rebuildDelay": 0,
+							"dev": true,
+							"port": 0
+						}
 					}
 				},
 				"test": {
@@ -102,6 +110,15 @@
 							"optimization": false,
 							"extractLicenses": false,
 							"sourceMap": true
+						},
+						"ui-local": {
+							"optimization": false,
+							"extractLicenses": false,
+							"sourceMap": true,
+							"tsConfig": "tsconfig.ui-local.json",
+							"styles": [
+								"src/styles.ui-local.scss"
+							]
 						}
 					},
 					"defaultConfiguration": "production"
@@ -118,6 +135,9 @@
 						},
 						"development": {
 							"buildTarget": "noah-shell:esbuild:development"
+						},
+						"ui-local": {
+							"buildTarget": "noah-shell:esbuild:ui-local"
 						}
 					},
 					"defaultConfiguration": "development"

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, HostListener, OnDestroy, computed, effect, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationCancel, NavigationEnd, NavigationError, RouteConfigLoadStart, Router, RouterOutlet } from '@angular/router';
 import { NoahLoadingMaskComponent } from '@dandy1103/ui';
 import { NoahHeaderComponent } from './layout/header/header.component';
 import type { NoahHeaderAction } from './layout/header/header.component';
@@ -8,7 +8,7 @@ import type { NavCatalog, NavGroup } from './layout/navbar/nav-catalog';
 import { NoahSidebarComponent } from './layout/sidebar/sidebar.component';
 import type { NoahSidebarSection } from './layout/sidebar/sidebar.component';
 import { OperationLoadingService } from '@dandy1103/common';
-import { Subscription, filter } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { SHELL_APPS, appByRepo, appFromPath } from './core/app-manifest';
 import { CatalogStore } from './core/catalog.store';
 import { ShellSessionStore } from './core/shell-session.store';
@@ -30,6 +30,7 @@ export class AppComponent implements OnDestroy {
   private readonly operationLoading = inject(OperationLoadingService);
   private readonly abortController = new AbortController();
   readonly loading = this.operationLoading.create(this.abortController.signal);
+  readonly remoteLoading = signal(false);
   private readonly pathname = signal(location.pathname);
   private readonly returnPath = signal(location.pathname + location.search);
   readonly ready = signal(false);
@@ -69,12 +70,16 @@ export class AppComponent implements OnDestroy {
       onCleanup(() => stylesheet.remove());
     });
     this.subscription.add(
-      this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-        .subscribe((event) => {
+      this.router.events.subscribe((event) => {
+        if (event instanceof RouteConfigLoadStart) this.remoteLoading.set(true);
+        if (event instanceof NavigationCancel || event instanceof NavigationError) this.remoteLoading.set(false);
+        if (event instanceof NavigationEnd) {
+          this.remoteLoading.set(false);
           const url = new URL(event.urlAfterRedirects, location.origin);
           this.pathname.set(url.pathname);
           this.returnPath.set(url.pathname + url.search);
-        }),
+        }
+      }),
     );
   }
 
