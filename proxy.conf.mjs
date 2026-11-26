@@ -82,6 +82,6 @@ function remote(port) {
     target: `http://localhost:${port}`,
     secure: false,
     changeOrigin: false,
-    rewrite: (path) => path.replace(/^\/remotes\/[^/]+/, ''),
+    pathRewrite: { '^/remotes/[^/]+': '' },
   };
 }
